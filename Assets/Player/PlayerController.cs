@@ -2,10 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-enum State
-{
-    Idle, Move
-}
+
 public class PlayerController : MonoBehaviour
 {
     public float speed;
@@ -38,12 +35,13 @@ public class PlayerController : MonoBehaviour
         {
             ChangeAnimator("Move");
             rb.velocity = Vector2.right * speed;
-            
+            transform.GetComponent<SpriteRenderer>().flipX = false;
         }
         else if (inputX < 0)
         {
             ChangeAnimator("Move");
             rb.velocity = Vector2.left * speed;
+            transform.GetComponent<SpriteRenderer>().flipX = true;
         }
         else
         {
