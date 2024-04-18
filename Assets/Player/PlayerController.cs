@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
     private Transform groundCheck;
     private float groundCheckRadius = 0.2f;
     public LayerMask groundLayer;
+    private CapsuleCollider2D cc;
 
     private bool facingRight = true;
 
@@ -20,6 +21,7 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         groundCheck = transform.Find("GroundCheck");
+        cc = GetComponent<CapsuleCollider2D>();
     }
 
     void Update()
@@ -65,13 +67,25 @@ public class PlayerController : MonoBehaviour
         {
             rb.velocity = Vector2.zero;
             animator.SetBool("isDown", true);
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                StartCoroutine(PlayerTriggerOnOff());
+            }
         }else
         {
             animator.SetBool("isDown", false);
         }
     }
 
-
+    IEnumerator PlayerTriggerOnOff()
+    {
+        cc.isTrigger = true;
+        float temp = rb.gravityScale;
+        rb.gravityScale = 10;
+        yield return new WaitForSeconds(0.5f);
+        cc.isTrigger = false;
+        rb.gravityScale = temp;
+    }
 
     void Flip()
     {
