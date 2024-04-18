@@ -1,68 +1,83 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
 
 public class PlayerController : MonoBehaviour
 {
-    public float speed;
-    public float inputX;
-    public float inputY;
-    public Rigidbody2D rb;
-    public Animator animator;
+    public float moveSpeed = 3f;
+    public float jumpForce = 6f;
+
+    private Rigidbody2D rb;
+    private Animator animator;
+    private bool isGrounded;
+    private Transform groundCheck;
+    private float groundCheckRadius = 0.2f;
+    public LayerMask groundLayer;
+
+    private bool facingRight = true;
 
     void Start()
     {
-        speed = 3f;
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        groundCheck = transform.Find("GroundCheck");
     }
-
 
     void Update()
     {
-        MoveX();
-    }
+        // 좌우 이동
+        float moveInput = Input.GetAxisRaw("Horizontal");
+        rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
 
-    /// <summary>
-    /// 좌우이동
-    /// </summary>
-    void MoveX()
-    {
-        inputX = Input.GetAxisRaw("Horizontal");
-
-        if (inputX > 0)
+        // 플립
+        if (moveInput > 0 && !facingRight)
         {
-            ChangeAnimator("Move");
-            rb.velocity = Vector2.right * speed;
-            transform.GetComponent<SpriteRenderer>().flipX = false;
+            Flip();
         }
-        else if (inputX < 0)
+        else if (moveInput < 0 && facingRight)
         {
-            ChangeAnimator("Move");
-            rb.velocity = Vector2.left * speed;
-            transform.GetComponent<SpriteRenderer>().flipX = true;
+            Flip();
+        }
+
+        // 상태 변경
+        if (Mathf.Abs(moveInput) > 0)
+        {
+            animator.SetBool("isMoving", true);
         }
         else
         {
-            ChangeAnimator("");
+            animator.SetBool("isMoving", false);
+        }
+
+        // 점프
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        if (isGrounded && Input.GetKeyDown(KeyCode.Space))
+        {
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            animator.SetBool("isJump", true);
+        }
+        else
+        {
+            animator.SetBool("isJump", false);
+        }
+
+        // 다운
+        if (isGrounded && Input.GetKey(KeyCode.DownArrow))
+        {
             rb.velocity = Vector2.zero;
+            animator.SetBool("isDown", true);
+        }else
+        {
+            animator.SetBool("isDown", false);
         }
     }
 
-    /// <summary>
-    /// 애니메이션 변경[Move, ]
-    /// </summary>
-    /// <param name="motion">없다면 Idle</param>
-    void ChangeAnimator(string motion)
-    {
-        switch (motion)
-        {
-            case "Move":
-                animator.SetBool("Move", true); break;
 
-            default: animator.SetBool("Move", false); break;
-        }
-        
+
+    void Flip()
+    {
+        facingRight = !facingRight;
+        Vector3 scale = transform.localScale;
+        scale.x *= -1;
+        transform.localScale = scale;
     }
 }
